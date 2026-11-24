@@ -24,6 +24,7 @@ export default function Highlights() {
 
   return (
     <section
+      id="highlights"
       ref={ref}
       className="section-padding px-4 sm:px-6 lg:px-8 relative z-10"
       aria-labelledby="highlights-heading"

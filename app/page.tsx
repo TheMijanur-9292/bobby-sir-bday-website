@@ -3,15 +3,14 @@
 import { useCallback } from "react";
 import Hero from "@/components/Hero";
 import Highlights from "@/components/Highlights";
-import PhotoGallery from "@/components/PhotoGallery";
-import WishWall from "@/components/WishWall";
+import TeamLetter from "@/components/TeamLetter";
 import Footer from "@/components/Footer";
 import FloatingParticles from "@/components/FloatingParticles";
 import AudioPlayer from "@/components/AudioPlayer";
 
 export default function Home() {
-  const scrollToWishes = useCallback(() => {
-    const el = document.getElementById("wish-wall");
+  const scrollToLetter = useCallback(() => {
+    const el = document.getElementById("team-letter");
     el?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
@@ -19,10 +18,9 @@ export default function Home() {
     <main>
       <FloatingParticles />
       <AudioPlayer />
-      <Hero onCtaClick={scrollToWishes} />
+      <Hero onCtaClick={scrollToLetter} />
       <Highlights />
-      <PhotoGallery />
-      <WishWall />
+      <TeamLetter />
       <Footer />
     </main>
   );

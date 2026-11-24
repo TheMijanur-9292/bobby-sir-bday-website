@@ -3,9 +3,8 @@ export const HERO = {
   headline: "Happy Birthday, Bobby Sir",
   subtitle:
     "Thank you for your guidance, trust, and leadership — wishing you a year filled with health, joy, and success.",
-  photoUrl:
-    "https://contacts.zoho.in/file?ID=60004256241&exp=6000&t=user&fs=original",
-  ctaLabel: "Send Wishes",
+  photoUrl: "/bobby-sir.jpg",
+  ctaLabel: "Read Our Note",
 };
 
 // ─── Highlights ───────────────────────────────────────────────────────────────
@@ -133,6 +132,6 @@ export const WISHES = [
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 export const FOOTER = {
-  team: "Software Engineering Team",
-  date: "April 22, 2026",
+  team: "IT Team",
+  date: "Nov 24, 2026",
 };

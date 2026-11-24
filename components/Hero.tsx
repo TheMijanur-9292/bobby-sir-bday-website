@@ -54,7 +54,7 @@ export default function Hero({ onCtaClick }: HeroProps) {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold-400/40 bg-gold-500/10 text-gold-300 text-sm font-medium mb-6"
             >
               <span>🎂</span>
-              <span>April 22, 2026</span>
+              <span>Nov 24, 2026</span>
               <span>🎉</span>
             </motion.div>
 
