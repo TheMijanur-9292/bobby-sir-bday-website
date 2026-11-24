@@ -9,11 +9,10 @@ export default function AudioPlayer() {
   const userManuallyPausedRef = useRef(false);
 
   useEffect(() => {
-    const audio = audioRef.current || new Audio("/audio/birthday.mp3");
-    audio.loop = true;
-    audio.preload = "auto";
-    audio.volume = 0.6;
-    audioRef.current = audio;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = 0.7;
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
@@ -21,59 +20,61 @@ export default function AudioPlayer() {
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
 
-    // Immediate attempt to play
-    const tryAutoplay = () => {
+    // Immediate attempt to play automatically on load
+    const startAudio = () => {
       if (userManuallyPausedRef.current) return;
-      audio.play().catch(() => {
-        // Handled silently - waiting for first user touch/scroll/click
-      });
+      audio
+        .play()
+        .then(() => {
+          removeGestureListeners();
+        })
+        .catch(() => {
+          // Autoplay was blocked by browser policy; wait for first user gesture
+        });
     };
 
-    tryAutoplay();
+    startAudio();
 
-    // Universal fallback: first interaction (tap, scroll, mouse move, click) on document immediately starts music
-    const handleFirstGesture = () => {
-      if (!userManuallyPausedRef.current && audio.paused) {
-        audio.play().catch(() => {});
-      }
-      cleanup();
-    };
-
-    const cleanup = () => {
-      const events = [
-        "click",
-        "touchstart",
-        "touchend",
-        "pointerdown",
-        "scroll",
-        "wheel",
-        "keydown",
-        "mousemove",
-      ];
-      events.forEach((evt) => {
-        window.removeEventListener(evt, handleFirstGesture);
-        document.removeEventListener(evt, handleFirstGesture);
-      });
-    };
-
-    const events = [
+    // Interaction events that browsers accept as user activation for audio
+    const interactionEvents = [
       "click",
       "touchstart",
       "touchend",
       "pointerdown",
-      "scroll",
-      "wheel",
       "keydown",
-      "mousemove",
     ];
 
-    events.forEach((evt) => {
-      window.addEventListener(evt, handleFirstGesture, { passive: true, once: true });
-      document.addEventListener(evt, handleFirstGesture, { passive: true, once: true });
+    const handleUserGesture = () => {
+      if (userManuallyPausedRef.current) {
+        removeGestureListeners();
+        return;
+      }
+      if (audio.paused) {
+        audio
+          .play()
+          .then(() => {
+            removeGestureListeners();
+          })
+          .catch(() => {});
+      } else {
+        removeGestureListeners();
+      }
+    };
+
+    const removeGestureListeners = () => {
+      interactionEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserGesture, true);
+        document.removeEventListener(evt, handleUserGesture, true);
+      });
+    };
+
+    interactionEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserGesture, { capture: true, passive: true });
+      document.addEventListener(evt, handleUserGesture, { capture: true, passive: true });
     });
 
     return () => {
-      cleanup();
+      removeGestureListeners();
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
     };
