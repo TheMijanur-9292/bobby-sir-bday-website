@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { HERO } from "@/lib/data";
+import { BOBBY_SIR_PHOTO } from "@/lib/bobbySirPhoto";
 
 interface HeroProps {
   onCtaClick: () => void;
@@ -182,36 +182,28 @@ export default function Hero({ onCtaClick }: HeroProps) {
               {/* === Pulsing glow rings === */}
               <motion.div
                 aria-hidden="true"
-                animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.15, 0.4] }}
+                animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.15, 0.3] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute w-[240px] h-[240px] sm:w-[310px] sm:h-[310px] md:w-[340px] md:h-[340px] lg:w-[410px] lg:h-[410px] rounded-full bg-gradient-to-br from-purple-500/50 via-gold-400/30 to-indigo-600/50 blur-2xl"
+                className="absolute w-[240px] h-[240px] sm:w-[310px] sm:h-[310px] md:w-[340px] md:h-[340px] lg:w-[410px] lg:h-[410px] rounded-full bg-gradient-to-br from-purple-500/30 via-gold-400/20 to-indigo-600/30 blur-xl"
               />
               <motion.div
                 aria-hidden="true"
-                animate={{ scale: [1.05, 1, 1.05], opacity: [0.2, 0.45, 0.2] }}
+                animate={{ scale: [1.03, 1, 1.03], opacity: [0.3, 0.6, 0.3] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute w-[220px] h-[220px] sm:w-[290px] sm:h-[290px] md:w-[320px] md:h-[320px] lg:w-[390px] lg:h-[390px] rounded-full border-2 border-gold-400/40"
+                className="absolute w-[215px] h-[215px] sm:w-[285px] sm:h-[285px] md:w-[315px] md:h-[315px] lg:w-[385px] lg:h-[385px] rounded-full border border-gold-400/50"
               />
 
-              {/* === Gold decorative ring === */}
-              <div
-                aria-hidden="true"
-                className="absolute w-[195px] h-[195px] sm:w-[255px] sm:h-[255px] md:w-[285px] md:h-[285px] lg:w-[345px] lg:h-[345px] rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-gold-300 p-[3px]"
-              >
-                <div className="w-full h-full rounded-full bg-[#0f0f23]" />
-              </div>
-
               {/* === Portrait === */}
-              <div className="relative w-44 h-44 sm:w-60 sm:h-60 md:w-[272px] md:h-[272px] lg:w-[330px] lg:h-[330px] rounded-full overflow-hidden ring-4 ring-purple-500/40 shadow-glow z-10">
-                <Image
-                  src={HERO.photoUrl}
-                  alt="Bobby Sir"
-                  fill
-                  sizes="(max-width: 640px) 176px, (max-width: 768px) 240px, (max-width: 1024px) 272px, 330px"
-                  className="object-cover object-top"
-                  priority
-                  unoptimized
-                />
+              <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-full p-1.5 bg-gradient-to-br from-gold-400 via-purple-500 to-amber-400 shadow-2xl z-10 flex items-center justify-center">
+                <div className="w-full h-full rounded-full overflow-hidden bg-slate-900 border-2 border-white/20 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={BOBBY_SIR_PHOTO}
+                    alt="Bobby Sir"
+                    className="w-full h-full object-cover object-center rounded-full"
+                    loading="eager"
+                  />
+                </div>
               </div>
 
               {/* === Floating badges === */}

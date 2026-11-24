@@ -1,122 +1,108 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 export default function AudioPlayer() {
-  const [playing, setPlaying] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const startMusic = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.volume = 0.5;
-    audio
-      .play()
-      .then(() => {
-        setPlaying(true);
-        setShowToast(false);
-      })
-      .catch(() => {
-        // Autoplay policy prevented playback until user interaction
-        setShowToast(true);
-      });
-  }, []);
-
-  const stopMusic = useCallback(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-    }
-    setPlaying(false);
-  }, []);
-
-  const toggle = () => {
-    if (playing) {
-      stopMusic();
-    } else {
-      startMusic();
-    }
-  };
+  const userManuallyPausedRef = useRef(false);
 
   useEffect(() => {
+    // Single persistent Audio instance
     const audio = new Audio("/audio/birthday.mp3");
     audio.loop = true;
     audio.preload = "auto";
+    audio.volume = 0.5;
     audioRef.current = audio;
 
-    // First user gesture triggers playback seamlessly
-    const handleFirstGesture = () => {
-      startMusic();
-      window.removeEventListener("click", handleFirstGesture);
-      window.removeEventListener("touchstart", handleFirstGesture);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", handlePause);
+
+    // Try auto-play immediately on load / refresh
+    const tryPlay = () => {
+      if (userManuallyPausedRef.current) return;
+      audio.play().catch(() => {
+        // Autoplay blocked by browser policy, will start on first user interaction
+      });
     };
 
-    // Try starting on mount
-    const timer = setTimeout(() => {
-      startMusic();
-    }, 800);
+    tryPlay();
 
-    window.addEventListener("click", handleFirstGesture, { once: true });
-    window.addEventListener("touchstart", handleFirstGesture, { once: true });
+    // Browser policy fallback: first click / touch / scroll anywhere starts music
+    const handleFirstInteraction = () => {
+      if (!userManuallyPausedRef.current && audio.paused) {
+        audio.play().catch(() => {});
+      }
+      cleanupInteractionListeners();
+    };
+
+    const cleanupInteractionListeners = () => {
+      window.removeEventListener("click", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("scroll", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+    };
+
+    window.addEventListener("click", handleFirstInteraction, { passive: true });
+    window.addEventListener("touchstart", handleFirstInteraction, { passive: true });
+    window.addEventListener("pointerdown", handleFirstInteraction, { passive: true });
+    window.addEventListener("scroll", handleFirstInteraction, { passive: true });
+    window.addEventListener("keydown", handleFirstInteraction, { passive: true });
 
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("click", handleFirstGesture);
-      window.removeEventListener("touchstart", handleFirstGesture);
+      cleanupInteractionListeners();
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", handlePause);
       audio.pause();
       audio.src = "";
+      audioRef.current = null;
     };
-  }, [startMusic]);
+  }, []); // Run ONLY ONCE on mount
+
+  const toggleMusic = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid triggering document-level listeners
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      userManuallyPausedRef.current = false;
+      audio.play().catch(console.error);
+    } else {
+      userManuallyPausedRef.current = true;
+      audio.pause();
+    }
+  };
 
   return (
-    <>
-      {/* Toast Prompt */}
-      <AnimatePresence>
-        {showToast && !playing && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.4 }}
-            className="fixed bottom-24 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-900/95 backdrop-blur-md border border-gold-400/40 shadow-xl text-sm text-white"
-          >
-            <span className="text-lg animate-bounce">🎉</span>
-            <span className="text-gold-200 text-xs sm:text-sm font-medium">
-              Tap anywhere to play birthday music!
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <motion.button
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
+      onClick={toggleMusic}
+      aria-label={isPlaying ? "Pause music" : "Play music"}
+      className={`fixed top-5 left-4 sm:left-auto sm:right-6 sm:top-6 z-50 h-11 sm:h-12 rounded-full flex items-center gap-2.5 px-3.5 sm:px-4 shadow-xl border backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+        isPlaying
+          ? "bg-gradient-to-r from-purple-600/90 via-pink-600/90 to-amber-500/90 text-white border-amber-400/50 shadow-purple-500/30"
+          : "bg-slate-900/85 text-slate-300 border-white/15 hover:border-gold-400/40 hover:text-gold-300"
+      }`}
+    >
+      <span className="text-base sm:text-lg">{isPlaying ? "🎉" : "🎵"}</span>
 
-      {/* Floating Party Music Button */}
-      <motion.button
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1, duration: 0.4, ease: "easeOut" }}
-        onClick={toggle}
-        aria-label={playing ? "Pause music" : "Play music"}
-        className={`fixed bottom-6 right-5 z-50 h-12 rounded-full flex items-center gap-2.5 px-4 shadow-xl border transition-all duration-300 hover:scale-105 active:scale-95 ${
-          playing
-            ? "bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 text-white border-amber-400/50 shadow-purple-500/30 animate-pulse"
-            : "bg-slate-900/90 text-slate-300 border-white/10 hover:border-gold-400/40 hover:text-gold-300"
-        }`}
-      >
-        <span className="text-lg">{playing ? "🎉" : "🎵"}</span>
-
-        {/* Animated Equalizer */}
-        {playing ? (
-          <div className="flex items-end gap-1 h-4">
-            <span className="w-1 bg-gold-300 rounded-full animate-[bounce_0.4s_ease-in-out_infinite] h-3.5" />
-            <span className="w-1 bg-pink-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.15s] h-4" />
-            <span className="w-1 bg-amber-300 rounded-full animate-[bounce_0.35s_ease-in-out_infinite_0.3s] h-2.5" />
-          </div>
-        ) : (
-          <span className="text-xs font-semibold">Play Music</span>
-        )}
-      </motion.button>
-    </>
+      {/* Animated Equalizer when playing */}
+      {isPlaying ? (
+        <div className="flex items-end gap-1 h-3.5">
+          <span className="w-1 bg-gold-300 rounded-full animate-[bounce_0.4s_ease-in-out_infinite] h-3" />
+          <span className="w-1 bg-pink-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.15s] h-3.5" />
+          <span className="w-1 bg-amber-300 rounded-full animate-[bounce_0.35s_ease-in-out_infinite_0.3s] h-2.5" />
+        </div>
+      ) : (
+        <span className="text-xs font-medium">Music Off</span>
+      )}
+    </motion.button>
   );
 }
